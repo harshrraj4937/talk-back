@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="An engineering specification for a voice calling agent: hosted, self-hosted, and platform architectures, with Go, realtime media and Mermaid diagrams." />
+  <title>AI Voice Calling Agent — System Specification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+  :root{--bg:#080d14;--surface:#101721;--card:#121b27;--card2:#172232;--border:#2a3544;--border2:#1d2938;--text:#eaf0f7;--muted:#93a4b7;--faint:#657a90;--lime:#c5f27d;--cyan:#83ded6;--orange:#f4ba82;--purple:#b7acff;--red:#ee9293;--shadow:0 20px 70px #0005;--radius:14px;--sidebar:252px}
+  *{box-sizing:border-box}html{scroll-behavior:smooth;scroll-padding-top:94px}body{background:var(--bg);color:var(--text);margin:0;font-family:'DM Sans',sans-serif;font-size:14px;line-height:1.65}a{color:var(--cyan);text-decoration:none}a:hover{color:#b8fff1}button,input{font:inherit}button{cursor:pointer}::selection{background:var(--lime);color:#08120c}
+  .page-noise{position:fixed;inset:0;pointer-events:none;z-index:0;background-image:radial-gradient(#8ea0bd18 .7px,transparent .7px);background-size:22px 22px;opacity:.22}.app{position:relative;z-index:1}
+  .topbar{height:70px;display:flex;align-items:center;justify-content:space-between;gap:20px;padding:0 36px;position:sticky;top:0;z-index:30;background:#0a1018ef;border-bottom:1px solid var(--border2);backdrop-filter:blur(18px)}
+  .brand{display:flex;align-items:center;gap:13px;white-space:nowrap;font-family:'Space Grotesk',sans-serif;letter-spacing:-.35px;font-weight:700;font-size:15px;color:white}.brand:hover{color:white}.brand-mark{width:34px;height:34px;background:var(--lime);color:#0e1721;display:grid;place-items:center;border-radius:9px;font-weight:900;font-size:17px}.brand-divider{width:1px;height:19px;background:#3b4757;margin:0 2px}.brand-detail{font-family:'IBM Plex Mono',monospace;font-size:10px;text-transform:uppercase;letter-spacing:1.2px;color:var(--muted)}
+  .top-actions{display:flex;align-items:center;gap:10px}.top-actions .tag{border:1px solid #35564b;color:var(--lime);font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:1px;padding:6px 10px;border-radius:100px}.btn{border:1px solid #344154;background:#16212f;color:var(--text);padding:10px 14px;border-radius:8px;font-size:12px;font-weight:700;display:inline-flex;align-items:center;gap:8px;transition:.2s}.btn:hover{background:#223044;border-color:#72879b;color:#fff}.btn-primary{border-color:var(--lime);background:var(--lime);color:#131a17}.btn-primary:hover{background:#e2ffa8;color:#131a17}.btn-quiet{background:transparent}.btn svg{width:15px;height:15px}.mobile-nav{display:none}
+  .layout{display:grid;grid-template-columns:var(--sidebar) minmax(0,1fr)}.sidebar{position:sticky;top:70px;height:calc(100vh - 70px);overflow-y:auto;border-right:1px solid var(--border2);padding:28px 13px 26px 21px;background:#0a1017;scrollbar-width:thin;scrollbar-color:#344354 transparent}.side-label{font:600 10px 'IBM Plex Mono',monospace;color:var(--faint);text-transform:uppercase;letter-spacing:1.7px;margin:17px 10px 9px}.side-link{padding:8px 11px;display:flex;align-items:center;gap:11px;color:#94a4b6;font-size:12px;font-weight:600;border-radius:7px;margin:2px 0;transition:.18s}.side-link:hover,.side-link.active{color:#f7faef;background:#1a2631}.side-link.active{box-shadow:inset 2px 0 var(--lime)}.side-num{font-family:'IBM Plex Mono',monospace;font-size:10px;min-width:19px;color:#607184}.side-link.active .side-num{color:var(--lime)}.sidebar-bottom{margin:30px 10px 0;padding:17px;border:1px solid var(--border);background:#111a24;border-radius:10px}.sidebar-bottom .mini{color:var(--lime);font:600 10px 'IBM Plex Mono',monospace;letter-spacing:1px}.sidebar-bottom p{font-size:12px;color:var(--muted);line-height:1.6;margin:9px 0 0}
+  .main{width:min(1360px,100%);min-width:0;padding:0 clamp(24px,4.2vw,76px) 110px;margin:auto}.hero{position:relative;min-height:555px;padding:81px 0 51px;overflow:hidden;border-bottom:1px solid var(--border2)}.hero:after{content:'';position:absolute;width:570px;height:570px;border:1px solid #c5f27d22;border-radius:100%;right:-226px;top:-108px;box-shadow:0 0 0 78px #c5f27d07,0 0 0 160px #c5f27d05;pointer-events:none}.eyebrow,.section-eyebrow{font:600 11px 'IBM Plex Mono',monospace;color:var(--lime);letter-spacing:1.8px;text-transform:uppercase}.eyebrow{display:flex;align-items:center;gap:12px}.eyebrow:before{content:'';width:19px;height:1px;background:var(--lime)}h1,h2,h3,h4,p{margin-top:0}.hero h1{font-family:'Space Grotesk',sans-serif;font-size:clamp(45px,5.3vw,76px);line-height:1.04;max-width:990px;letter-spacing:-3.1px;font-weight:700;margin:25px 0 22px;position:relative;z-index:2}.hero h1 em{font-style:normal;color:var(--lime)}.hero-lead{color:#aab8c9;font-size:17px;max-width:680px;line-height:1.8}.hero-actions{display:flex;gap:11px;flex-wrap:wrap;margin-top:29px}.hero-meta{display:flex;gap:28px;flex-wrap:wrap;margin-top:65px}.hero-stat{border-left:1px solid #455368;padding-left:17px;min-width:135px}.hero-stat strong{display:block;font:600 22px 'Space Grotesk',sans-serif;line-height:1.2}.hero-stat span{font:500 10px 'IBM Plex Mono',monospace;letter-spacing:.6px;color:var(--muted)}
+  .section{padding-top:75px;margin-top:0;scroll-margin-top:82px}.section+.section{border-top:1px solid var(--border2);margin-top:65px}.section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:20px;margin-bottom:27px}.section h2{font:700 clamp(28px,3vw,38px) 'Space Grotesk',sans-serif;letter-spacing:-1.2px;line-height:1.15;margin:13px 0}.section-intro{color:#a4b4c4;max-width:790px;font-size:14px;line-height:1.85;margin-bottom:25px}.section h3{font:700 21px 'Space Grotesk',sans-serif;letter-spacing:-.35px;margin:0 0 12px}.section h4{font:700 15px 'Space Grotesk',sans-serif;letter-spacing:-.15px;margin-bottom:8px}.mono{font-family:'IBM Plex Mono',monospace}.muted{color:var(--muted)}.small{font-size:12px}.subtle{font-size:12px;color:var(--muted)}.maxcopy{max-width:760px}.grid{display:grid;gap:14px}.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:repeat(3,minmax(0,1fr))}.grid-4{grid-template-columns:repeat(4,minmax(0,1fr))}.card{background:linear-gradient(160deg,#17212e,#111922);border:1px solid var(--border);border-radius:var(--radius);padding:22px;min-width:0}.card:hover{border-color:#435166}.card .card-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:17px}.card p{color:var(--muted);font-size:12.5px;line-height:1.75;margin-bottom:0}.pill{display:inline-flex;align-items:center;border:1px solid var(--border);border-radius:100px;padding:5px 9px;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.45px;color:var(--muted);white-space:nowrap}.pill-lime{color:var(--lime);border-color:#4b6745;background:#25351b45}.pill-cyan{color:var(--cyan);border-color:#356660;background:#142e3245}.pill-purple{color:var(--purple);border-color:#5b527f;background:#2b204945}.pill-orange{color:var(--orange);border-color:#705239;background:#44281745}.accent{color:var(--lime)}.icon-num{font:700 13px 'IBM Plex Mono',monospace;width:34px;height:34px;background:#273729;color:var(--lime);border:1px solid #466146;border-radius:8px;display:grid;place-items:center}.callout{display:flex;gap:14px;align-items:flex-start;border:1px solid #3f543c;background:linear-gradient(100deg,#23312265,#101923);padding:19px 21px;border-radius:11px;margin:24px 0}.callout strong{color:var(--lime);display:block;margin-bottom:5px}.callout p{color:#b2c1b0;font-size:12.5px;line-height:1.75;margin-bottom:0}.callout.warn{border-color:#62513c;background:linear-gradient(100deg,#34271a72,#101923)}.callout.warn strong{color:var(--orange)}.callout.warn p{color:#c8b7a4}.callout.red{border-color:#624043;background:linear-gradient(100deg,#32202472,#101923)}.callout.red strong{color:var(--red)}
+  .route-card{padding:25px;display:flex;flex-direction:column;min-height:272px}.route-letter{font:700 50px 'Space Grotesk',sans-serif;line-height:1;color:var(--lime);letter-spacing:-2px}.route-card:nth-child(2) .route-letter{color:var(--cyan)}.route-card:nth-child(3) .route-letter{color:var(--purple)}.route-card h3{margin:9px 0 5px}.route-card .route-bottom{margin-top:auto;padding-top:20px;display:flex;align-items:center;justify-content:space-between;color:var(--text);font-weight:700;font-size:12px}.route-bottom span{color:var(--lime);font-size:20px}.route-card:nth-child(2) .route-bottom span{color:var(--cyan)}.route-card:nth-child(3) .route-bottom span{color:var(--purple)}
+  .table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:12px;margin:18px 0 25px}.data-table{width:100%;border-collapse:collapse;min-width:660px;font-size:12.5px}.data-table th{padding:15px 17px;text-align:left;background:#1c2836;color:#c5d1de;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.35px}.data-table td{padding:13px 17px;border-top:1px solid #283646;color:#aebecd;vertical-align:top}.data-table td:first-child{color:#e7edf4;font-weight:700}.data-table tr:hover td{background:#17212dbb}.data-table .best{color:var(--lime);font-weight:700}
+  .diagram-card{background:#0e1620;border:1px solid var(--border);border-radius:13px;overflow:hidden;margin:20px 0 25px}.diagram-toolbar{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#17222e;border-bottom:1px solid #2b3b4b;padding:12px 17px}.diagram-toolbar .diagram-label{display:flex;gap:9px;align-items:center;font:600 11px 'IBM Plex Mono',monospace;letter-spacing:.6px;color:#a2b4c6}.diagram-dot{height:7px;width:7px;background:var(--lime);border-radius:50%;box-shadow:0 0 0 4px #c5f27d12}.diagram-actions{display:flex;gap:6px}.tiny-btn{background:#253345;border:1px solid #384a5b;color:#c1d1df;font:500 10px 'IBM Plex Mono',monospace;border-radius:6px;padding:6px 9px}.tiny-btn:hover{border-color:var(--lime);color:var(--lime)}.diagram-body{padding:27px 15px 20px;overflow:auto;text-align:center;min-height:155px;background:radial-gradient(circle at 50% -20%,#17324870,transparent 70%)}.mermaid{display:flex;justify-content:center;min-width:max-content;font-size:13px;color:var(--text)}.mermaid svg{max-width:100%;height:auto}.diagram-note{border-top:1px solid var(--border2);color:var(--muted);font-size:11.5px;padding:12px 17px;background:#121d29}.diagram-fallback{color:var(--muted);font:11px/1.5 'IBM Plex Mono',monospace;text-align:left;white-space:pre;overflow:auto;margin:0}.mermaid-loader{padding:16px;font:11px 'IBM Plex Mono',monospace;color:var(--muted)}
+  .architecture-chooser{display:flex;flex-wrap:wrap;gap:6px;background:#141e2b;padding:6px;border-radius:10px;border:1px solid var(--border);width:fit-content}.chooser-btn{padding:10px 17px;background:none;border:1px solid transparent;color:var(--muted);font:700 11px 'IBM Plex Mono',monospace;letter-spacing:.4px;border-radius:6px}.chooser-btn.active{background:var(--lime);color:#111a16}.chooser-btn:hover:not(.active){color:white;background:#263346}.focus-title{margin-bottom:6px}.focus-panel{display:none}.focus-panel.active{display:block}.focus-title{font:700 25px 'Space Grotesk',sans-serif}.focus-desc{color:var(--muted);font-size:13px;max-width:720px}.focus-insight{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0 14px}.focus-insight span{color:#b4c5d5;background:#1c2937;padding:7px 10px;border-radius:6px;font:500 11px 'IBM Plex Mono',monospace}
+  .steps{counter-reset:step;display:grid;gap:10px}.step{border:1px solid var(--border);background:#141e29;border-radius:10px;padding:15px 20px;display:flex;gap:17px;align-items:flex-start}.step-n{flex:0 0 30px;height:30px;background:#27322d;border:1px solid #47614b;border-radius:8px;display:grid;place-items:center;color:var(--lime);font:700 11px 'IBM Plex Mono',monospace}.step strong{font-size:13px}.step p{font-size:12px;color:var(--muted);line-height:1.7;margin:4px 0 0}
+  .repo-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.repo{background:#121c27;border:1px solid var(--border);border-radius:11px;padding:19px 20px;display:block;transition:transform .15s,border-color .15s;color:var(--text);min-width:0}.repo:hover{border-color:var(--cyan);transform:translateY(-2px);color:var(--text)}.repo-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}.repo-name{font:700 14px 'Space Grotesk',sans-serif;overflow-wrap:anywhere}.repo p{color:var(--muted);margin:0;font-size:12px;line-height:1.7}.repo-foot{display:flex;gap:7px;flex-wrap:wrap;margin-top:17px}.repo .arrow{color:var(--lime);font-size:22px}
+  .code-box{background:#08111b;border:1px solid #304254;border-radius:12px;overflow:hidden;margin:19px 0}.code-head{padding:11px 16px;background:#1a2634;border-bottom:1px solid #2b3d50;color:#c3d3e4;font:600 11px 'IBM Plex Mono',monospace;display:flex;justify-content:space-between;align-items:center}.code-box pre{overflow:auto;margin:0;padding:19px;color:#a7dfd2;font:11.5px/1.75 'IBM Plex Mono',monospace;tab-size:2}.kv{display:grid;grid-template-columns:155px 1fr;gap:10px 19px;padding:20px;border:1px solid var(--border);border-radius:12px;background:#141e2a}.kv dt{font:600 11px 'IBM Plex Mono',monospace;color:var(--lime)}.kv dd{color:#aebdcc;margin:0;font-size:12.5px}.section-inner{margin:31px 0}.check-list{list-style:none;padding:0;margin:0;display:grid;gap:12px}.check-list li{padding-left:26px;position:relative;color:#b9c7d5;font-size:12.5px;line-height:1.7}.check-list li:before{content:'✓';font-weight:700;position:absolute;left:0;top:0;color:var(--lime)}.simple-list{padding-left:18px;color:#aabacd;font-size:12.5px;line-height:1.9}.simple-list li{margin-bottom:5px}.strong{color:var(--text);font-weight:700}
+  .calc{border:1px solid #45633f;background:linear-gradient(125deg,#17281d,#101b24);border-radius:13px;padding:23px}.calc-fields{display:grid;grid-template-columns:repeat(4,1fr);gap:13px}.calc-label{display:block;color:#a9bdad;font:600 10px 'IBM Plex Mono',monospace;letter-spacing:.4px;margin:0 0 9px}.calc-field{width:100%;background:#0d1718;border:1px solid #406046;color:white;border-radius:7px;outline:0;padding:11px;font:500 15px 'IBM Plex Mono',monospace}.calc-field:focus{border-color:var(--lime)}.calc-output{display:flex;justify-content:space-between;gap:25px;align-items:center;border-top:1px solid #3c5841;margin-top:20px;padding-top:20px}.calc-number{font:700 clamp(28px,3vw,37px) 'Space Grotesk',sans-serif;color:var(--lime);letter-spacing:-1px}.calc-hint{font-size:11px;color:#a8bea9;max-width:650px;line-height:1.7}.metric-stripe{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:20px 0}.metric-stripe>div{padding:19px;background:#17212d;border-right:1px solid var(--border)}.metric-stripe>div:last-child{border-right:0}.metric-stripe strong{font:700 20px 'Space Grotesk',sans-serif;display:block}.metric-stripe span{color:var(--muted);font:500 10px 'IBM Plex Mono',monospace;display:block;line-height:1.5;margin-top:6px}
+  .risk-grid{display:grid;gap:10px}.risk{display:grid;grid-template-columns:130px 1fr;gap:15px;border-bottom:1px solid var(--border2);padding:16px 2px}.risk:last-child{border-bottom:0}.risk b{color:var(--orange);font:700 11px 'IBM Plex Mono',monospace}.risk p{color:#b7c5d4;font-size:12.5px;margin:0}.timeline{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px}.phase{padding:19px 15px 17px;border:1px solid var(--border);border-top:3px solid #40523e;border-radius:8px;background:#151f2a;min-height:225px}.phase:nth-child(2){border-top-color:#608e63}.phase:nth-child(3){border-top-color:#88b66c}.phase:nth-child(4){border-top-color:var(--lime)}.phase:nth-child(5){border-top-color:var(--cyan)}.phase .week{font:600 10px 'IBM Plex Mono',monospace;color:var(--lime);margin-bottom:12px}.phase strong{font:700 15px 'Space Grotesk',sans-serif;line-height:1.3;display:block;margin-bottom:12px}.phase p{font-size:11.5px;color:var(--muted);line-height:1.6;margin-bottom:0}.footer{display:flex;justify-content:space-between;gap:18px;border-top:1px solid var(--border);padding:35px 0;color:var(--faint);font:11px 'IBM Plex Mono',monospace}.source-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.source-link{display:block;background:#141e29;border:1px solid var(--border);border-radius:8px;padding:13px 15px;color:#b0c3d0;font-size:12px}.source-link:hover{border-color:var(--cyan)}.source-link span{color:var(--lime);font:600 10px 'IBM Plex Mono',monospace;display:block;margin-bottom:4px}
+  .toast{position:fixed;right:25px;bottom:23px;z-index:100;background:var(--lime);color:#182219;font:700 12px 'IBM Plex Mono',monospace;border-radius:8px;padding:12px 18px;opacity:0;transform:translateY(10px);transition:.2s;pointer-events:none;box-shadow:var(--shadow)}.toast.show{opacity:1;transform:translateY(0)}.search-backdrop{display:none;position:fixed;inset:0;background:#000b;z-index:90;place-items:start center;padding-top:12vh;backdrop-filter:blur(5px)}.search-backdrop.open{display:grid}.search-panel{width:min(580px,calc(100% - 28px));border:1px solid #425469;background:#121d29;border-radius:13px;box-shadow:var(--shadow);overflow:hidden}.search-panel input{width:100%;background:none;border:0;outline:0;color:var(--text);padding:20px;font-size:16px}.search-results{max-height:52vh;overflow:auto;border-top:1px solid #314256;padding:8px}.search-result{display:flex;align-items:center;justify-content:space-between;padding:13px 12px;border-radius:6px;color:#d5e0e9;font-size:13px}.search-result:hover{background:#233448;color:var(--lime)}.search-foot{border-top:1px solid #314256;padding:10px 17px;color:var(--muted);font:10px 'IBM Plex Mono',monospace}
+  @media(max-width:1250px){.grid-4{grid-template-columns:repeat(2,minmax(0,1fr))}.timeline{grid-template-columns:repeat(3,1fr)}}
+  @media(max-width:1020px){.layout{grid-template-columns:1fr}.sidebar{display:none}.main{padding:0 30px 60px}.topbar{padding:0 26px}.mobile-nav{display:inline-flex}.hero{min-height:0;padding-top:66px}.hero-meta{margin-top:50px}}
+  @media(max-width:700px){.topbar{padding:0 15px;height:64px}.brand-detail,.top-actions .tag,.top-actions .print-btn{display:none}.main{padding:0 17px 50px}.hero{padding:49px 0}.hero h1{letter-spacing:-2px;font-size:46px}.hero-lead{font-size:14px}.hero-meta{gap:17px}.section{padding-top:47px}.section+.section{margin-top:42px}.grid-2,.grid-3,.grid-4,.repo-grid,.source-list{grid-template-columns:1fr}.grid{gap:10px}.route-card{min-height:210px}.section-head{display:block}.calc-fields{grid-template-columns:repeat(2,1fr)}.calc-output{display:block}.metric-stripe{grid-template-columns:repeat(2,1fr)}.metric-stripe>div:nth-child(2){border-right:0}.metric-stripe>div:nth-child(-n+2){border-bottom:1px solid var(--border)}.timeline{grid-template-columns:1fr 1fr}.phase{min-height:175px}.risk{grid-template-columns:1fr;gap:6px}.kv{grid-template-columns:1fr;gap:3px}.kv dd{margin-bottom:9px}.diagram-body{padding:12px 7px}.diagram-toolbar{padding:10px}.footer{display:block}.hero-actions{gap:8px}}
+  @media(max-width:450px){.timeline,.calc-fields{grid-template-columns:1fr}.top-actions .btn span{display:none}.brand{font-size:12px;gap:8px}.section h2{font-size:28px}}
+  @media print{body{color:#14191f;background:#fff}.page-noise,.sidebar,.topbar,.hero-actions,.diagram-actions,.calc,.search-backdrop,.toast{display:none!important}.layout{display:block}.main{width:100%;padding:0 12px}.hero{min-height:0;padding:20px 0}.hero h1{font-size:40px;color:#171b1c}.hero h1 em{color:#32744b}.section{padding-top:28px;break-before:auto}.section+.section{margin-top:25px;border-color:#ddd}.card,.repo,.diagram-card,.phase,.callout,.table-wrap,.step{break-inside:avoid;background:#fff;color:#161f27;border-color:#cdd6dc}.section h2,.section h3,.card h3{color:#17212a}.section-intro,.card p,.muted,.subtle{color:#45515b}.diagram-body{background:#fff}.mermaid svg{max-width:100%!important}.repo-grid{grid-template-columns:1fr 1fr}a{color:#245d69}}
+  </style>
+</head>
+<body>
+<div class="page-noise"></div>
+<div class="app">
+  <header class="topbar">
+    <a class="brand" href="#top" aria-label="Back to top"><span class="brand-mark">V</span> VOICE<span class="brand-divider"></span><span class="brand-detail">SYSTEMS / SPECIFICATION</span></a>
+    <div class="top-actions">
+      <span class="tag">SPEC V1.0 · 06 NOV 2026</span>
+      <button type="button" class="btn btn-quiet mobile-nav" id="mobileSearch">☰ <span>Sections</span></button>
+      <button type="button" class="btn btn-quiet" id="searchButton" aria-label="Search specification">⌕ <span>Search</span> <span class="mono" style="color:#6d8294">⌘K</span></button>
+      <button type="button" class="btn print-btn" onclick="window.print()">↓ <span>Export PDF</span></button>
+    </div>
+  </header>
+  <div class="layout">
+    <nav class="sidebar" aria-label="Documentation sections">
+      <div class="side-label">Foundations</div>
+      <a class="side-link active" href="#overview"><span class="side-num">01</span> Executive overview</a>
+      <a class="side-link" href="#models"><span class="side-num">02</span> Voice model landscape</a>
+      <a class="side-link" href="#primitives"><span class="side-num">03</span> Core building blocks</a>
+      <a class="side-link" href="#architectures"><span class="side-num">04</span> Architecture explorer</a>
+      <div class="side-label">Three build strategies</div>
+      <a class="side-link" href="#approach-a"><span class="side-num">A</span> Hosted AI agent</a>
+      <a class="side-link" href="#approach-b"><span class="side-num">B</span> Self-hosted agent</a>
+      <a class="side-link" href="#approach-c"><span class="side-num">C</span> Voice AI platform</a>
+      <div class="side-label">Engineering blueprint</div>
+      <a class="side-link" href="#stack"><span class="side-num">08</span> Tech stack &amp; services</a>
+      <a class="side-link" href="#workflows"><span class="side-num">09</span> Call flows &amp; lifecycle</a>
+      <a class="side-link" href="#hardware"><span class="side-num">10</span> Hardware &amp; economics</a>
+      <a class="side-link" href="#contracts"><span class="side-num">11</span> API &amp; data contracts</a>
+      <a class="side-link" href="#operations"><span class="side-num">12</span> Reliability &amp; security</a>
+      <div class="side-label">Implementation</div>
+      <a class="side-link" href="#roadmap"><span class="side-num">13</span> Delivery roadmap</a>
+      <a class="side-link" href="#repositories"><span class="side-num">14</span> Open-source repository map</a>
+      <a class="side-link" href="#decisions"><span class="side-num">15</span> Architecture decision log</a>
+      <a class="side-link" href="#references"><span class="side-num">16</span> References</a>
+      <div class="sidebar-bottom"><div class="mini">DESIGN PRINCIPLE</div><p>Build the calling product first. Measure real latency. Own the underlying engine only when necessary.</p></div>
+    </nav>
+    <main class="main" id="top">
+      <section class="hero" aria-label="Introduction">
+        <div class="eyebrow">ENGINEERING BLUEPRINT / REALTIME SYSTEMS</div>
+        <h1>AI Voice<br/><em>Calling Agent.</em></h1>
+        <p class="hero-lead">One engineering specification. Three possible products. A hosted AI call agent, an entirely self-hosted voice stack, or a multi-tenant voice infrastructure platform — built with Go at the realtime edge.</p>
+        <div class="hero-actions"><a class="btn btn-primary" href="#architectures">Explore the architectures <span aria-hidden="true">↗</span></a><a class="btn" href="#roadmap">View implementation plan ↘</a><a class="btn btn-quiet" href="#repositories">GitHub reference map ↗</a></div>
+        <div class="hero-meta"><div class="hero-stat"><strong>03</strong><span>BUILD STRATEGIES</span></div><div class="hero-stat"><strong>10+</strong><span>MERMAID DIAGRAMS</span></div><div class="hero-stat"><strong>Go</strong><span>REALTIME / CONTROL PLANE</span></div><div class="hero-stat"><strong>2026</strong><span>DOCS CHECKED</span></div></div>
+      </section>
+
+      <section class="section" id="overview">
+        <div class="section-eyebrow">01 / PRODUCT DEFINITION</div><h2>What are we building?</h2>
+        <p class="section-intro">A phone- and browser-accessible agent capable of natural spoken conversations, permitted tool execution, and human escalation. The three variants share conversational requirements but have dramatically different engineering scope, costs, and ownership boundaries.</p>
+        <div class="grid grid-3">
+          <a href="#approach-a" class="card route-card"><div class="card-top"><span class="route-letter">A.</span><span class="pill pill-lime">FASTEST MVP</span></div><h3>Hosted voice agent</h3><p>Own the user experience and business workflows; delegate speech inference and media infrastructure to managed providers.</p><div class="route-bottom">Read specification <span>↗</span></div></a>
+          <a href="#approach-b" class="card route-card"><div class="card-top"><span class="route-letter">B.</span><span class="pill pill-cyan">MODEL CONTROL</span></div><h3>Self-hosted voice AI</h3><p>Operate speech, language, and voice generation on your GPU infrastructure with explicit model and latency constraints.</p><div class="route-bottom">Read specification <span>↗</span></div></a>
+          <a href="#approach-c" class="card route-card"><div class="card-top"><span class="route-letter">C.</span><span class="pill pill-purple">SAAS PLATFORM</span></div><h3>Voice infrastructure</h3><p>Deliver reusable multi-tenant agent, telephony, billing, routing, observability, and deployment primitives to third parties.</p><div class="route-bottom">Read specification <span>↗</span></div></a>
+        </div>
+        <div class="callout"><div class="icon-num">!</div><div><strong>Recommended sequence: A → selected B components → C only with validated demand</strong><p>These are three different business bets, not three phases that must all be completed. Approach C creates an infrastructure/SaaS business with substantially greater operational scope. Starting there is an expensive assumption unless multiple customers specifically need your own platform.</p></div></div>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Dimension</th><th>A · Hosted</th><th>B · Self-hosted</th><th>C · Platform</th></tr></thead><tbody>
+          <tr><td>Core value</td><td>Business workflow automation</td><td>Model/data sovereignty</td><td>Developer infrastructure &amp; multi-tenancy</td></tr>
+          <tr><td>Primary engineering</td><td>Integrations &amp; agent quality</td><td>Inference, media, DSP</td><td>Control plane, metering, isolation</td></tr>
+          <tr><td>GPU ownership</td><td class="best">None required</td><td>Usually yes</td><td>Optional BYO / managed fleet</td></tr>
+          <tr><td>Go responsibilities</td><td>API, gateway, tools</td><td>Media gateway, scheduling</td><td>Control plane, routing, quotas</td></tr>
+          <tr><td>Hardest risk</td><td>Vendor cost and reliability</td><td>Latency and model quality</td><td>Multi-tenant reliability &amp; economics</td></tr>
+          <tr><td>First useful demo</td><td>Browser voice + booking tool</td><td>One locally served conversation</td><td>Two isolated tenant projects</td></tr>
+        </tbody></table></div>
+      </section>
+
+      <section class="section" id="models">
+        <div class="section-eyebrow">02 / VOICE MODEL LANDSCAPE</div><h2>Product voice ≠ developer API</h2>
+        <p class="section-intro">Models that power ChatGPT Voice are not automatically model identifiers you can deploy with an API key. Keep consumer product models, documented developer API models, and open-weights research models in separate categories.</p>
+        <div class="grid grid-2">
+          <div class="card"><div class="card-top"><span class="pill pill-purple">CHATGPT PRODUCT</span><span class="mono subtle">OCT 2026</span></div><h3>GPT-Live-1.1</h3><p>Full-duplex voice model used in eligible paid ChatGPT Voice experiences. Natural overlapping speech, turn handling, pacing, and interruptions. This name is not presented here as a public developer API model ID.</p></div>
+          <div class="card"><div class="card-top"><span class="pill pill-purple">CHATGPT PRODUCT</span><span class="mono subtle">OCT 2026</span></div><h3>GPT-Live-1.1 Quip</h3><p>Smaller GPT-Live variant used on ChatGPT Free and Go experiences, subject to account limits. Do not treat a ChatGPT Free/Go/Plus subscription as an API entitlement.</p></div>
+          <div class="card"><div class="card-top"><span class="pill pill-lime">DEVELOPER API</span><span class="mono subtle">DOCUMENTED</span></div><h3><code>gpt-live-1</code></h3><p>Developer-facing full-duplex voice model with delegation to a backend agent. Documented API session price: US$0.05/min, billed per second; backend model/tool fees are additional. Verify current availability and quotas in your API organization.</p></div>
+          <div class="card"><div class="card-top"><span class="pill pill-cyan">DEVELOPER API</span><span class="mono subtle">DOCUMENTED</span></div><h3><code>gpt-realtime-2.1</code></h3><p>Audio-in/audio-out developer model offering reasoning and tool use over realtime sessions. Different product behavior and pricing model than GPT-Live. A mini variant is also listed in API documentation.</p></div>
+        </div>
+        <div class="callout warn"><div class="icon-num">i</div><div><strong>Engineering rule: configure models by exact API ID, not marketing name</strong><p>This specification uses the exact documented API names <code>gpt-live-1</code> and <code>gpt-realtime-2.1</code> as references. Model availability, pricing, quotas and endpoints are not interchangeable. GPT-Live-1.1/Quip are useful architectural inspiration, not guaranteed API deployment options.</p></div></div>
+        <h3>What creates the “human” feeling?</h3>
+        <div class="grid grid-4">
+          <div class="card"><span class="pill">01 / TRANSPORT</span><h4 style="margin-top:15px">Low-jitter frames</h4><p>WebRTC, jitter buffers, RTP timing, echo handling and efficient frame scheduling.</p></div>
+          <div class="card"><span class="pill">02 / INFERENCE</span><h4 style="margin-top:15px">Streaming speech</h4><p>Generate audio before a complete message is finished; avoid sequential blocking.</p></div>
+          <div class="card"><span class="pill">03 / CONVERSATION</span><h4 style="margin-top:15px">Barge-in &amp; overlap</h4><p>Handle pauses, acknowledgements, false interruptions and speaker transitions.</p></div>
+          <div class="card"><span class="pill">04 / TOOLS</span><h4 style="margin-top:15px">Async delegation</h4><p>Continue dialogue while slow database, tool or reasoning operations complete.</p></div>
+        </div>
+        <p class="subtle">Sources: <a href="https://help.openai.com/en/articles/20001274-chatgpt-voice" target="_blank" rel="noopener noreferrer">ChatGPT Voice</a>, <a href="https://developers.openai.com/api/docs/guides/live" target="_blank" rel="noopener noreferrer">GPT-Live API guide</a>, <a href="https://developers.openai.com/api/docs/models" target="_blank" rel="noopener noreferrer">API model catalog</a>.</p>
+      </section>
+
+      <section class="section" id="primitives">
+        <div class="section-eyebrow">03 / SYSTEM PRIMITIVES</div><h2>What the engine actually does</h2>
+        <p class="section-intro">A telephone conversation traverses two different systems: a <b>media plane</b> that must never stall, and a <b>control plane</b> that safely performs application operations.</p>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> FOUNDATION / MEDIA AND CONTROL PLANES</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart LR
+  A["Caller / Browser"] --> B["PSTN / WebRTC"]
+  subgraph Media["MEDIA PLANE · latency critical"]
+    B --> C["SIP + RTP bridge"]
+    C --> D["Go media gateway"]
+    D <--> E["Audio engine"]
+    E <--> F["Realtime voice model"]
+  end
+  subgraph Control["CONTROL PLANE · durable"]
+    F -. "tool request" .-> G["Go API / policy"]
+    G --> H["PostgreSQL"]
+    G --> I["External APIs"]
+    G --> J["Redis / jobs"]
+  end
+  G -. "tool response" .-> F
+  classDef green fill:#24412c,stroke:#a4d886,color:#f2ffea
+  classDef blue fill:#1b3544,stroke:#6bbbb7,color:#edffff
+  class D,E,F green
+  class G,H,I,J blue
+</pre></div><div class="diagram-note">Design constraint: never place synchronous database calls on an audio frame delivery path.</div></div>
+        <div class="grid grid-3">
+          <div class="card"><h4>Telephony / SIP</h4><p>Connect telephone numbers, create and terminate calls, bridge narrow-band telephony audio to WebRTC rooms, transfer to humans.</p></div>
+          <div class="card"><h4>Media / WebRTC</h4><p>Secure realtime streams (RTP/SRTP), SDP negotiation, Opus/PCM codecs, jitter buffering, packet loss, audio pacing.</p></div>
+          <div class="card"><h4>Agent runtime</h4><p>Dialogue orchestration, backchannels, interruptions, tool deadlines, conversation state, audio output cancellation.</p></div>
+          <div class="card"><h4>Inference adapters</h4><p>Pluggable realtime model, or STT → text LLM → TTS. Provider selection must be per-tenant configurable in C.</p></div>
+          <div class="card"><h4>State &amp; persistence</h4><p>Postgres for authoritative calls/events; Redis for ephemeral presence, idempotency guards, scheduling and rate limits.</p></div>
+          <div class="card"><h4>Safety &amp; observability</h4><p>Consent, disclosures, audit trail, recording control, metrics, latency spans, prompt/tool versioning, human handoff.</p></div>
+        </div>
+      </section>
+
+      <section class="section" id="architectures">
+        <div class="section-eyebrow">04 / INTERACTIVE COMPARISON</div><h2>Architecture explorer</h2>
+        <p class="section-intro">Switch between deployment styles. The diagram, ownership boundaries and primary risks change with the product you decide to build.</p>
+        <div class="architecture-chooser" role="tablist" aria-label="Architecture choices"><button class="chooser-btn active" data-architecture="A" role="tab" aria-selected="true">A / HOSTED</button><button class="chooser-btn" data-architecture="B" role="tab" aria-selected="false">B / SELF-HOSTED</button><button class="chooser-btn" data-architecture="C" role="tab" aria-selected="false">C / PLATFORM</button></div>
+        <div class="focus-panel active" data-panel="A"><div style="margin-top:25px"><h3 class="focus-title">A. Business-first calling agent</h3><p class="focus-desc">Go owns identity, tools, persistence, policies, and booking/business actions. Hosted AI and media infrastructure own audio inference and realtime transport.</p><div class="focus-insight"><span>GPU: none</span><span>Latency: provider dependent</span><span>Primary metric: completed calls</span></div></div><div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> OPTION A / HOSTED REALTIME SERVICES</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart LR
+  U["Caller / Web client"] --> T["Carrier / managed SIP"]
+  T --> M["Managed media / WebRTC"]
+  M <--> V["Hosted voice model"]
+  V <-- "delegate" --> G["Go tool gateway"]
+  G --> P[("PostgreSQL")]
+  G --> X["Booking / CRM / other APIs"]
+  G --> R[("Redis")]
+  G -. "events" .-> D["Next.js dashboard"]
+  classDef ai fill:#27412c,stroke:#a3d77c,color:#efffe9
+  classDef app fill:#1d3545,stroke:#77ced1,color:#e8fcfc
+  class V ai
+  class G,P,X,R,D app
+</pre></div><div class="diagram-note">Note: the exact wiring differs for GPT-Live, Realtime API, and third-party SIP agents. Treat these as alternative provider-specific integrations, not a single interchangeable endpoint.</div></div></div>
+        <div class="focus-panel" data-panel="B"><div style="margin-top:25px"><h3 class="focus-title">B. Private model-serving stack</h3><p class="focus-desc">Own telephony integration, media conversion, ASR, LLM and speech synthesis. Run either a chained pipeline or a genuine duplex audio model such as Moshi.</p><div class="focus-insight"><span>GPU: usually required</span><span>Latency: your responsibility</span><span>Primary metric: quality per GPU-hour</span></div></div><div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> OPTION B / SELF-HOSTED INFERENCE</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart LR
+  A["Phone / browser"] --> B["SIP → WebRTC"]
+  B --> C["Go media gateway"]
+  C --> D{"Inference mode"}
+  D --> |"modular"| E["VAD + ASR"]
+  E --> F["Local LLM"]
+  F --> G["Local streaming TTS"]
+  G --> C
+  D --> |"duplex"| H["Moshi / research voice model"]
+  H --> C
+  F --> I["Tool API / DB"]
+  H -. "adapter if supported" .-> I
+  classDef core fill:#24412c,stroke:#a4d886,color:#f2ffea
+  classDef infra fill:#273a4d,stroke:#86bdcf,color:#f1f9ff
+  class C,D core
+  class E,F,G,H infra
+</pre></div><div class="diagram-note">A duplex audio model is not equivalent to a chained STT/LLM/TTS pipeline. Duplex tool-calling and multilingual suitability require separate validation.</div></div></div>
+        <div class="focus-panel" data-panel="C"><div style="margin-top:25px"><h3 class="focus-title">C. Multi-tenant voice infrastructure</h3><p class="focus-desc">Provide organizations, agents, policies, telephony provisioning, routing, usage metering, deployment modes, recordings, analytics and API/SDK access.</p><div class="focus-insight"><span>GPU: tenant/provider choice</span><span>Latency: SLA + provider routing</span><span>Primary metric: gross margin + p95</span></div></div><div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> OPTION C / PLATFORM CONTROL &amp; DATA PLANES</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart TB
+  A["Tenant dashboard / public API"] --> B["Identity + org RBAC"]
+  B --> C["Go control plane"]
+  C --> D["Agent configs / versions"]
+  C --> E["Usage quotas + billing"]
+  C --> F["Telephony provisioning"]
+  C --> G["Dispatch scheduler"]
+  H["PSTN / WebRTC ingress"] --> I["Regional media pools"]
+  G --> I
+  I --> J["Agent execution pools"]
+  J --> K{"Model router"}
+  K --> L["Managed voice APIs"]
+  K --> M["Self-hosted GPU pools"]
+  J --> N["Tenant tool sandbox"]
+  J --> O["Call events / metrics"]
+  O --> E
+  O --> P["Immutable audit + object storage"]
+  classDef core fill:#24412c,stroke:#a4d886,color:#f2ffea
+  classDef infra fill:#27354a,stroke:#86bdcf,color:#f1f9ff
+  class C,G,J,K core
+  class I,M,P infra
+</pre></div><div class="diagram-note">Hard boundaries: per-tenant authorization, limits, encryption, configuration versions, call ledger, and failure isolation.</div></div></div>
+      </section>
+
+      <section class="section" id="approach-a">
+        <div class="section-eyebrow">05 / STRATEGY A</div><h2>A — Hosted AI voice calling agent</h2>
+        <p class="section-intro">Build the smallest useful product: an inbound hotel or customer-support agent that answers real questions, performs safe tool calls, and transfers to a human when uncertain. Avoid owning the inference runtime.</p>
+        <div class="grid grid-2">
+          <div class="card"><span class="pill pill-lime">GOALS</span><h3 style="margin-top:15px">What v1 must do</h3><ul class="check-list"><li>Browser microphone conversation with interruption handling</li><li>Inbound telephone connection through an approved provider</li><li>Go-based tool execution with allowlisted endpoints</li><li>Room or appointment lookups with authoritative prices</li><li>Booking confirmation before any mutation</li><li>Call log, summary, status, optional recording consent</li><li>Human escalation on request, failure, or uncertainty</li></ul></div>
+          <div class="card"><span class="pill pill-orange">NON-GOALS</span><h3 style="margin-top:15px">Do not build yet</h3><ul class="simple-list"><li>Your own RTP packet scheduler or media SFU</li><li>GPU inference or fine-tuning infrastructure</li><li>Multi-tenant prepaid billing</li><li>Autonomous mass outbound marketing dialer</li><li>A second, incompatible agent orchestration framework</li></ul><div class="callout warn" style="margin-bottom:0"><div><strong>Go role</strong><p>Implement the tool gateway, authentication, webhook verification, event handling and durable call ledger in Go. Use managed media or a proven SIP bridge.</p></div></div></div>
+        </div>
+        <div class="section-inner"><h3>Runtime contract</h3><dl class="kv"><dt>Agent runtime</dt><dd>Provider-specific integration with GPT-Live API or Realtime API. LiveKit Agents is an alternative orchestrator when you want provider-agnostic media and SIP routing; do not assume every combination works without an adapter.</dd><dt>Gateway service</dt><dd>Go 1.x (supported release), <code>net/http</code> or Chi, signed callbacks, token/session generation, tool middleware, request deadlines.</dd><dt>Persistence</dt><dd>PostgreSQL calls, call_events, tool_invocations, bookings; Redis for ephemeral session/cache and rate limits.</dd><dt>UX</dt><dd>Next.js admin console; static HTML/JS works for a proof of concept. Browser credentials must be short-lived and server-minted.</dd><dt>Accept criteria</dt><dd>Agent can converse, check availability, ask for explicit confirmation, place one test booking, and correctly escalate to a human. Every mutation is traceable.</dd></dl></div>
+        <h3>Implementation steps</h3><div class="steps">
+          <div class="step"><span class="step-n">01</span><div><strong>Browser-only realtime demo</strong><p>Implement microphone permissions, secure server-minted session credentials, realtime event lifecycle, reconnect messaging, and transcript display.</p></div></div>
+          <div class="step"><span class="step-n">02</span><div><strong>Go tool gateway</strong><p>Create read-only <code>check_availability</code>, <code>get_quote</code>, and <code>get_policy</code> APIs. Validate input, authorization and tool timeouts; never let model-supplied SQL execute.</p></div></div>
+          <div class="step"><span class="step-n">03</span><div><strong>Booking and escalation</strong><p>Implement <code>reserve_room</code> with human confirmation, idempotency keys, quote expiry and transaction boundary. Provide a call-transfer fallback.</p></div></div>
+          <div class="step"><span class="step-n">04</span><div><strong>Telephony integration and testing</strong><p>Configure inbound SIP/phone provider, audio format conversion as required, signed webhooks, recording disclosure, failed call handling, live call dashboard.</p></div></div>
+        </div>
+      </section>
+
+      <section class="section" id="approach-b">
+        <div class="section-eyebrow">06 / STRATEGY B</div><h2>B — Fully self-hosted open-source agent</h2>
+        <p class="section-intro">Run audio recognition, language inference and speech output on owned hardware or rented GPUs. Choose between a modular pipeline and an experimental end-to-end duplex model after benchmarking quality on real phone audio.</p>
+        <div class="grid grid-2"><div class="card"><span class="pill pill-cyan">PIPELINE 1</span><h3 style="margin-top:14px">Chained STT → LLM → TTS</h3><p>Recommended first self-hosted implementation for clear control over tools and language substitutions. Potential components: Silero VAD, faster-whisper or another streaming ASR, vLLM-served instruction model, and a streaming TTS engine.</p><p style="margin-top:10px">Tradeoff: requires explicit endpointing, barge-in cancellation, audio buffering and cross-model scheduling.</p></div><div class="card"><span class="pill pill-cyan">PIPELINE 2</span><h3 style="margin-top:14px">Native full-duplex speech</h3><p>Research models such as <a href="https://github.com/kyutai-labs/moshi" target="_blank" rel="noopener noreferrer">Moshi</a> maintain simultaneous audio streams. <a href="https://github.com/QwenLM/Qwen3-Omni" target="_blank" rel="noopener noreferrer">Qwen3-Omni</a> is a distinct multimodal speech model family. Neither should be assumed to deliver the exact product capabilities, tool contracts or latency of ChatGPT Voice.</p><p style="margin-top:10px">Tradeoff: more complex inference, adaptation and speech-language coverage. Check specific model licenses.</p></div></div>
+        <div class="callout warn"><div class="icon-num">!</div><div><strong>Hindi support is not automatic</strong><p>For an India-focused calling agent, validate Hindi, Hinglish, regional accents, telephony noise and number pronunciation with your exact ASR/TTS checkpoints. Qwen3-Omni's published original speech-language list does not include Hindi audio output. Model capability claims must be checked per release.</p></div></div>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> SELF-HOSTED / AUDIO FRAME PATH</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+sequenceDiagram
+  participant C as Caller
+  participant M as Go media gateway
+  participant S as Streaming ASR
+  participant L as Local LLM
+  participant V as Streaming TTS
+  participant G as Tool API
+  C->>M: RTP audio frames
+  M->>S: Resampled PCM chunks
+  S-->>M: Partial transcript
+  M->>L: Finalized turn + context
+  opt Tool required
+    L->>G: Typed function request
+    G-->>L: Verified result
+  end
+  L-->>V: Streaming text segments
+  V-->>M: Playable audio chunks
+  M-->>C: RTP speech stream
+  C->>M: Barge-in begins
+  M-->>L: Cancel/supersede pending output
+  M-->>V: Cancel pending synthesis
+  M->>S: Continue recognition
+</pre></div><div class="diagram-note">This sequence shows the modular alternative. A native duplex model has a different streaming interface and interruption model.</div></div>
+        <h3>Hardware hypotheses — benchmark, don't guess</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>Tier</th><th>CPU / RAM</th><th>GPU</th><th>Best use</th><th>Caveat</th></tr></thead><tbody>
+          <tr><td>Local research</td><td>8+ cores / 32 GB</td><td>12–16 GB VRAM</td><td>Small quantized LLM + lightweight STT/TTS</td><td>Some components may run on CPU; not a full-duplex guarantee</td></tr>
+          <tr><td>Serious modular lab</td><td>12–16 cores / 64 GB</td><td>24–32 GB VRAM</td><td>Dedicated STT, LLM, TTS experiments</td><td>Benchmark simultaneous turns and tail latency</td></tr>
+          <tr><td>Large duplex / production evaluation</td><td>16–32 cores / 128 GB+</td><td>48–80 GB+ VRAM or multiple GPUs</td><td>Large multimodal models, managed GPU pools</td><td>Some BF16 models exceed 80 GB depending on context and input</td></tr>
+        </tbody></table></div>
+        <div class="section-inner"><h3>Self-hosted engineering requirements</h3><div class="grid grid-2"><div class="card"><h4>Audio correctness</h4><ul class="check-list"><li>RTP/Opus/PCM transcoding and validated sample rates</li><li>Timestamp-aligned audio queues</li><li>Echo suppression strategy and jitter handling</li><li>Pause detection and false-interruption recovery</li></ul></div><div class="card"><h4>Inference operations</h4><ul class="check-list"><li>GPU memory budget per loaded model</li><li>Warm starts and queue admission control</li><li>Cancellation propagated across ASR, LLM and TTS</li><li>Model quality, multilingual and licensing evaluation</li></ul></div></div></div>
+        <h3>Go vs Python vs Rust boundary</h3><p class="section-intro">Go should handle sessions, routing, auth, scheduling and telemetry. Keep inference engines in their native runtimes — Python/CUDA for common model servers, Rust where a particular runtime provides stable high-performance codecs. Expose gRPC or bounded WebSocket interfaces; avoid moving tensor inference into Go just for stack purity.</p>
+      </section>
+
+      <section class="section" id="approach-c">
+        <div class="section-eyebrow">07 / STRATEGY C</div><h2>C — Voice AI infrastructure platform</h2>
+        <p class="section-intro">This is a product for developers and businesses building their own calling agents. The differentiator must be more than an API wrapper: it needs reliability, tenancy, billing, routing, lifecycle management, integrations and a credible developer experience.</p>
+        <div class="grid grid-3"><div class="card"><span class="pill pill-purple">CONTROL PLANE</span><h4 style="margin-top:15px">Tenant &amp; agent management</h4><p>Organizations, roles, API keys, phone number assignments, versioned prompts, voice profiles, agents, secrets and policy presets.</p></div><div class="card"><span class="pill pill-purple">REALTIME DATA PLANE</span><h4 style="margin-top:15px">Low-latency dispatch</h4><p>Regional SIP and WebRTC ingestion, call session routing, media workers, model adapters, call transfer and backpressure.</p></div><div class="card"><span class="pill pill-purple">BUSINESS PLANE</span><h4 style="margin-top:15px">Usage and commerce</h4><p>Per-call and per-tenant metering, costs, billing ledger, quotas, abuse monitoring, SLOs, export and support tooling.</p></div></div>
+        <h3 style="margin-top:30px">Tenant isolation and call dispatch</h3>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> MULTI-TENANT / REQUEST AND SESSION FLOW</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+sequenceDiagram
+  participant X as Tenant API client
+  participant C as Go control plane
+  participant D as Dispatch service
+  participant M as Media pool
+  participant A as Agent pool
+  participant R as Billing ledger
+  X->>C: Create call (API key, tenant ID)
+  C->>C: RBAC, quota, policy validation
+  C->>D: Queue signed call job
+  D->>M: Allocate ingress / room
+  D->>A: Assign versioned agent config
+  A->>M: Attach as room participant
+  M-->>X: Call status webhook
+  loop During conversation
+    M-->>A: Voice frames
+    A-->>M: Generated speech
+    A-->>R: Usage event (idempotent)
+  end
+  A->>R: Finalized provider + compute usage
+  D-->>C: Final call outcome
+  C-->>X: Final webhook + report
+</pre></div><div class="diagram-note">Billing events must be idempotent and reconstructable from immutable call/session events.</div></div>
+        <div class="grid grid-2"><div class="card"><h3>Minimum useful platform</h3><ul class="check-list"><li>Two or more fully isolated tenants</li><li>Hosted-provider adapter with swap capability</li><li>Agent configuration/version deployment</li><li>Inbound and outbound call APIs</li><li>Webhook signing, retries and dead-letter events</li><li>Usage ledger, quota enforcement and invoices</li><li>Role-based access and tenant audit export</li></ul></div><div class="card"><h3>Anti-goals at launch</h3><ul class="simple-list"><li>Implementing a new WebRTC SFU instead of using LiveKit</li><li>Operating dozens of model families from day one</li><li>Supporting all telephony providers without test certification</li><li>Promise of perfect multilingual or emotion recognition</li><li>Unlimited concurrent calls with no capacity controls</li><li>Building a proprietary model before proving demand</li></ul><p style="margin-top:12px;color:var(--orange)">The moat must be workflow reliability, vertical specialization, deployment guarantees or economics — not merely exposing speech models behind an endpoint.</p></div></div>
+        <h3 style="margin-top:29px">Suggested service decomposition</h3><dl class="kv"><dt>api-gateway</dt><dd>Go: tenant authentication, rate limiting, request schemas, API keys, audit correlation.</dd><dt>control-plane</dt><dd>Go: agent versions, telephony resources, configuration, policy enforcement, quotas.</dd><dt>call-dispatcher</dt><dd>Go: job routing, available media/agent worker selection, capacity admission, failover.</dd><dt>media-plane</dt><dd>LiveKit server + SIP bridge (both Go-based projects), unless a proven limitation justifies custom Pion media.</dd><dt>agent-runtime</dt><dd>LiveKit Agents/Pipecat or a custom adapter worker with clearly versioned media and tool contracts.</dd><dt>metering</dt><dd>Durable event-ledger consumer; auditable aggregation of provider charges, active seconds, tool and GPU usage.</dd><dt>web-console</dt><dd>Next.js: organizations, numbers, agents, deployments, active calls, transcripts, usage and keys.</dd></dl>
+      </section>
+
+      <section class="section" id="stack">
+        <div class="section-eyebrow">08 / TECHNOLOGY MAP</div><h2>Recommended tech stack</h2>
+        <p class="section-intro">Select by responsibility. Prefer mature open-source infrastructure to custom RTP/WebRTC plumbing unless you are explicitly building a media engine as your product.</p>
+        <div class="table-wrap"><table class="data-table"><thead><tr><th>Layer</th><th>Technology</th><th>Purpose and engineering decision</th><th>Applies to</th></tr></thead><tbody>
+          <tr><td>Media server</td><td>LiveKit Server (Go)</td><td>WebRTC rooms, SFU, distributed participant media; do not rewrite for MVP</td><td>A optional · B · C</td></tr>
+          <tr><td>SIP bridge</td><td>LiveKit SIP / provider trunk</td><td>Bridge PSTN calls into WebRTC; handles call leg signaling</td><td>A · B · C</td></tr>
+          <tr><td>Low-level WebRTC</td><td>Pion WebRTC (Go)</td><td>Custom protocol/media adapters if LiveKit isn't sufficient</td><td>B / C advanced</td></tr>
+          <tr><td>Go APIs</td><td>net/http, Chi, gRPC</td><td>Auth, control-plane, tools, dispatch, ledger, event ingestion</td><td>A · B · C</td></tr>
+          <tr><td>Agent framework</td><td>LiveKit Agents / Pipecat</td><td>Turn handling, audio pipeline, tool calls, media integrations</td><td>A optional · B · C</td></tr>
+          <tr><td>Hosted models</td><td>GPT-Live-1, GPT-Realtime-2.1</td><td>Developer-facing API alternatives; integration differences apply</td><td>A · C</td></tr>
+          <tr><td>Self-hosted duplex</td><td>Moshi; evaluate Qwen3-Omni</td><td>Research streaming speech models with model-specific capabilities</td><td>B · C optional</td></tr>
+          <tr><td>Self-hosted modular</td><td>Silero / faster-whisper / vLLM / TTS</td><td>Independent ASR, reasoning and speech output components</td><td>B · C optional</td></tr>
+          <tr><td>Primary database</td><td>PostgreSQL</td><td>Tenants, call metadata, events, agent config, billing ledger</td><td>A · B · C</td></tr>
+          <tr><td>Transient data</td><td>Redis</td><td>Presence, rate limits, ephemeral session state, coordination</td><td>A · B · C</td></tr>
+          <tr><td>Async events</td><td>Postgres outbox + NATS/Redis streams</td><td>Durable event delivery; choose one messaging contract</td><td>B · C</td></tr>
+          <tr><td>Observability</td><td>OpenTelemetry, Prometheus, Grafana</td><td>Per-segment latency, frame loss, provider errors and cost metrics</td><td>A · B · C</td></tr>
+          <tr><td>Client / dashboard</td><td>HTML/JS prototype, Next.js later</td><td>Browser calls, test harness, agent configuration and analytics</td><td>A · B · C</td></tr>
+        </tbody></table></div>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> DEPENDENCY MAP / WHERE GO FITS</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart TB
+  W["HTML / JS client"] --> API["Go gateway / REST + WebSocket"]
+  API --> DB[("PostgreSQL")]
+  API --> RC[("Redis")]
+  API --> AG["Agent session manager"]
+  W --> LK["LiveKit WebRTC SFU · Go"]
+  PH["SIP phone number"] --> SI["LiveKit SIP · Go"]
+  SI --> LK
+  LK <--> AG
+  AG <--> HD["Hosted voice API"]
+  AG <--> IN["Inference pool · Python/CUDA/Rust"]
+  AG --> TOOLS["Go tools + business APIs"]
+  TOOLS --> DB
+  AG -. "events" .-> OBS["OpenTelemetry / metrics"]
+  API -. "events" .-> OBS
+  classDef go fill:#234230,stroke:#c5f27d,color:#fff
+  class API,LK,SI,TOOLS go
+</pre></div><div class="diagram-note">A single stack may use either a direct hosted realtime connection or the LiveKit agent/media path; select one provider-specific path per deployment.</div></div>
+      </section>
+
+      <section class="section" id="workflows">
+        <div class="section-eyebrow">09 / OPERATIONAL FLOWS</div><h2>How a call moves through the system</h2>
+        <h3>Inbound hotel-booking sequence</h3>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> SEQUENCE / INBOUND RESERVATION</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+sequenceDiagram
+  participant C as Customer
+  participant P as Telephony/SIP
+  participant V as Voice agent
+  participant G as Go tool service
+  participant D as Booking DB
+  C->>P: Dial hotel number
+  P->>V: Establish media session
+  V-->>C: AI disclosure and greeting
+  C->>V: Ask for two rooms tomorrow
+  V->>G: check_availability(date, guests)
+  G->>D: Query current inventory
+  D-->>G: Available rooms and prices
+  G-->>V: Verified quote + expiry
+  V-->>C: Quote options and ask approval
+  C->>V: Explicit confirmation
+  V->>G: reserve_room(quote_id, idempotency_key)
+  G->>D: Transactional hold / reserve
+  D-->>G: Booking reference
+  G-->>V: Confirmed booking result
+  V-->>C: Repeat booking reference
+  V-->>P: Call close
+  P-->>G: Signed final status event
+</pre></div><div class="diagram-note">No booking is committed without consent, server-side validation, availability recheck and idempotent persistence.</div></div>
+        <h3 style="margin-top:31px">Session lifecycle</h3>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> STATE MACHINE / CALL LIFECYCLE</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+stateDiagram-v2
+  [*] --> Created
+  Created --> Ringing: outbound dial
+  Created --> Connecting: inbound answer
+  Ringing --> Connecting: picked up
+  Ringing --> Failed: no answer / error
+  Connecting --> Active: media ready
+  Connecting --> Failed: timeout
+  Active --> Transferring: human requested
+  Transferring --> Active: return to AI
+  Transferring --> Completed: transfer completed
+  Active --> Completed: normal hangup
+  Active --> Failed: unrecoverable failure
+  Completed --> Finalized: write ledger, outcome
+  Failed --> Finalized: write error, outcome
+  Finalized --> [*]
+</pre></div><div class="diagram-note">All transitions must be idempotent and timestamped; call status and billing ledger should never depend on an in-memory-only event.</div></div>
+        <h3 style="margin-top:31px">Interruption and tool delegation</h3>
+        <div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> EVENT FLOW / CANCEL, BACKCHANNEL, DELEGATE</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart TD
+  A["Speech frame received"] --> B{"Agent currently speaking?"}
+  B -->|"No"| C["Continue listen / infer turn"]
+  B -->|"Yes"| D{"Substantive interruption?"}
+  D -->|"No · backchannel"| E["Continue speaking + listening"]
+  D -->|"Yes"| F["Cancel / supersede output"]
+  F --> C
+  C --> G{"Needs external action?"}
+  G -->|"No"| H["Generate stream response"]
+  G -->|"Yes"| I["Dispatch async tool with deadline"]
+  I --> J["Keep audio interaction responsive"]
+  J --> K{"Tool result valid?"}
+  K -->|"Yes"| H
+  K -->|"No"| L["Fallback / human escalation"]
+  H --> A
+</pre></div><div class="diagram-note">This is a policy design, not a claim that a chained pipeline intrinsically understands backchannels. Implement classifiers/heuristics and test real overlap audio.</div></div>
+      </section>
+
+      <section class="section" id="hardware">
+        <div class="section-eyebrow">10 / HARDWARE &amp; UNIT ECONOMICS</div><h2>Size for latency, not just model memory</h2>
+        <p class="section-intro">CPU-side audio scheduling, network quality, active session duration, token throughput, GPU batching and TTS generation can all saturate independently. These hardware figures are starting hypotheses; capacity must be load-tested with the actual models and call patterns.</p>
+        <div class="grid grid-3"><div class="card"><span class="pill pill-lime">A / HOSTED</span><h3 style="margin-top:16px">4 vCPU · 8 GB</h3><p>Development/pilot VPS for Go API, Postgres/Redis and light orchestration. No GPU if all AI inference/media are managed. Not a guaranteed call-concurrency target.</p></div><div class="card"><span class="pill pill-cyan">B / LOCAL LAB</span><h3 style="margin-top:16px">64 GB + 24 GB VRAM</h3><p>Practical starting point for modular local inference research. Specific duplex and multimodal checkpoints may need substantially more GPU memory.</p></div><div class="card"><span class="pill pill-purple">C / PRODUCTION</span><h3 style="margin-top:16px">Autoscaled pools</h3><p>Dedicated Go control/media workers and optional provider or GPU inference pools. Scale on concurrent sessions, frame lag, CPU, p95 latency, GPU utilization and queue delay.</p></div></div>
+        <h3 style="margin-top:31px">Latency budget (engineering targets, not guarantees)</h3>
+        <div class="metric-stripe"><div><strong>&lt; 250 ms</strong><span>ILLUSTRATIVE FRAME/ENDPOINTING COMPONENT BUDGET</span></div><div><strong>&lt; 800 ms</strong><span>DESIRED FIRST AUDIBLE RESPONSE IN SIMPLE TURNS</span></div><div><strong>p95</strong><span>MEASURE ACROSS END-TO-END CALL SEGMENTS</span></div><div><strong>0 loss</strong><span>TARGET FOR DURABLE CALL/BILLING EVENTS</span></div></div>
+        <p class="subtle">Latency numbers above are suggested initial experiment objectives, not published guarantees. End-to-end response time includes endpointing, model/tool wait, synthesis, media and network. Report p50/p95/p99; compare clean speech, packet loss and noisy phone channels.</p>
+        <h3 style="margin-top:30px">Hosted GPT-Live reference cost calculator</h3>
+        <div class="calc"><div class="calc-fields"><label><span class="calc-label">CALLS PER DAY</span><input type="number" min="0" max="1000000" value="100" class="calc-field" id="callsDay"></label><label><span class="calc-label">MINUTES PER CALL</span><input type="number" min="0" max="1440" step="0.5" value="4" class="calc-field" id="minsCall"></label><label><span class="calc-label">VOICE API $ / MIN</span><input type="number" min="0" step="0.001" value="0.05" class="calc-field" id="voicePrice"></label><label><span class="calc-label">CARRIER $ / MIN *</span><input type="number" min="0" step="0.001" value="0.02" class="calc-field" id="carrierPrice"></label></div><div class="calc-output"><div><div class="mono small" style="color:var(--muted)">ILLUSTRATIVE 30-DAY TOTAL · USD</div><div id="calcTotal" class="calc-number">$840.00</div></div><p class="calc-hint" id="calcDetails">12,000 estimated minutes / month. Excludes delegated models, tool calls, taxes, numbers, storage, egress, payment costs and platform overhead. *Carrier value is an editable example, not a provider quote.</p></div></div>
+        <div class="callout warn"><div class="icon-num">$</div><div><strong>Do not confuse 30-day voice session cost with total cost of a call</strong><p><code>gpt-live-1</code> API documentation lists $0.05 per session minute, billed by second. Inbound/outbound carrier fees, SIP trunk rental, backend LLM/tools, recordings, storage, taxes, and retries may be additional. Realtime 2.1 uses token pricing and is not priced by the same formula.</p></div></div>
+        <h3>Capacity evaluation method</h3><div class="steps"><div class="step"><span class="step-n">01</span><div><strong>Record a representative test set</strong><p>Include 100+ consented or synthetic dialogue scenarios: silence, barge-in, accents, Hindi-English code switching, noisy phone audio, long turns, and tool failures.</p></div></div><div class="step"><span class="step-n">02</span><div><strong>Load test by concurrent conversations</strong><p>Increment sessions, not just requests per second. Capture jitter, speech start latency, token throughput, calls dropped, tool timeouts and GPU allocation.</p></div></div><div class="step"><span class="step-n">03</span><div><strong>Find the first saturated resource</strong><p>Observe CPU media handlers, memory, bandwidth, provider rate limits, TTS queues, STT streams and model KV cache. Scale the bottleneck, not every service.</p></div></div></div>
+      </section>
+
+      <section class="section" id="contracts">
+        <div class="section-eyebrow">11 / API, EVENTS &amp; DATA</div><h2>Concrete interface specifications</h2>
+        <p class="section-intro">The following endpoints and schemas are a <b>proposed internal contract</b>, not SDK calls guaranteed by any provider. They keep A, B and C interoperable by separating application contracts from vendor SDKs.</p>
+        <div class="grid grid-2"><div class="card"><h3>Call management</h3><ul class="simple-list mono"><li>POST /v1/calls</li><li>GET /v1/calls/{id}</li><li>POST /v1/calls/{id}/transfer</li><li>POST /v1/calls/{id}/hangup</li><li>GET /v1/calls/{id}/events</li></ul></div><div class="card"><h3>Agent / tenant management</h3><ul class="simple-list mono"><li>POST /v1/agents</li><li>POST /v1/agents/{id}/versions</li><li>POST /v1/agents/{id}/deploy</li><li>GET /v1/usage?period=month</li><li>POST /v1/webhooks/telephony/{provider}</li></ul></div></div>
+        <div class="code-box"><div class="code-head">API CONTRACT / POST /v1/calls <button class="tiny-btn copy-code">COPY</button></div><pre><code>{
+  "agent_id": "agent_hotel_01",
+  "direction": "outbound",
+  "to": "+15551234567",
+  "from_number_id": "num_01",
+  "metadata": {"booking_id": "test_123"},
+  "request_id": "req_01"
+}
+
+// Headers:
+// Authorization: Bearer <tenant API key>
+// Idempotency-Key: <stable unique request key>
+
+// 202 Accepted
+{
+  "call_id": "call_01",
+  "state": "created",
+  "created_at": "2026-11-06T06:30:00Z"
+}</code></pre></div>
+        <div class="code-box"><div class="code-head">EVENT CONTRACT / call.completed <button class="tiny-btn copy-code">COPY</button></div><pre><code>{
+  "event_id": "evt_001",
+  "schema_version": 1,
+  "type": "call.completed",
+  "tenant_id": "tenant_hotel_01",
+  "call_id": "call_01",
+  "session_id": "sess_01",
+  "sequence": 17,
+  "occurred_at": "2026-11-06T06:34:10Z",
+  "data": {
+    "duration_seconds": 245,
+    "outcome": "reservation_confirmed",
+    "recording_consented": false,
+    "human_transfer": false
+  }
+}
+
+// Delivery: signed HTTP webhook; at-least-once
+// Consumer must dedupe by event_id</code></pre></div>
+        <div class="code-box"><div class="code-head">SUGGESTED GO REPOSITORY STRUCTURE <button class="tiny-btn copy-code">COPY</button></div><pre><code>ai-voice-calling-agent/
+├── apps/
+│   ├── web/                # Next.js console / browser call UI
+│   └── docs/               # This specification
+├── services/
+│   ├── gateway/            # Go HTTP auth + API
+│   ├── tools/              # Go allowlisted business tools
+│   ├── call-dispatcher/    # Go call lifecycle, routing, jobs
+│   ├── billing/            # Go usage ledger (C only)
+│   └── agent-worker/       # provider / pipeline runtime
+├── internal/
+│   ├── auth/               # tenant RBAC, API keys
+│   ├── call/               # call state &amp; idempotency
+│   ├── modeladapter/       # hosted / local model contracts
+│   └── telemetry/          # OTel spans and counters
+├── deploy/
+│   ├── compose/            # local development
+│   └── kubernetes/         # C or scaled B later
+├── migrations/             # Postgres schema versions
+├── tests/
+│   ├── contract/
+│   ├── integration/
+│   └── audio-fixtures/
+└── docs/
+    ├── architecture.md
+    ├── decisions.md
+    ├── evaluation.md
+    └── implementation-progress.md</code></pre></div>
+        <h3>Minimum data model</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>Entity</th><th>Purpose</th><th>Keys / constraints</th></tr></thead><tbody><tr><td>tenant</td><td>Organization &amp; policy boundary (C)</td><td>id; billing_account_id; suspended_at</td></tr><tr><td>agent_version</td><td>Immutable config for reproducible calls</td><td>agent_id, version; model config hash</td></tr><tr><td>call</td><td>Authoritative call lifecycle</td><td>id; tenant_id; agent_version_id; state; request idempotency</td></tr><tr><td>call_event</td><td>Append-only lifecycle timeline</td><td>event_id UNIQUE; call_id; sequence</td></tr><tr><td>tool_invocation</td><td>Audit function requests/results</td><td>call_id; tool_version; status; timeout</td></tr><tr><td>usage_ledger</td><td>Reconstructable charges (C)</td><td>source_event_id UNIQUE; units; provider</td></tr><tr><td>consent_record</td><td>Disclosure / optional recording permission</td><td>call_id; policy version; timestamp</td></tr></tbody></table></div>
+      </section>
+
+      <section class="section" id="operations">
+        <div class="section-eyebrow">12 / RELIABILITY &amp; TRUST</div><h2>The requirements that decide if it ships</h2>
+        <div class="grid grid-2"><div class="card"><h3>Realtime quality metrics</h3><ul class="check-list"><li>Time from caller speech end to first audible agent response</li><li>p50, p95, p99 round-trip turn latency per provider</li><li>Network jitter, packet loss and audio underruns</li><li>Interrupted vs false-interrupted response rate</li><li>Tool success, timeout and hallucinated-action rate</li><li>Human escalation and task-completion rate</li></ul></div><div class="card"><h3>Security and compliance</h3><ul class="check-list"><li>Disclose use of AI to callers when required/appropriate</li><li>Consent and lawful basis for recording and transcription</li><li>Opt-in, DNC checks and lawful outbound calling rules</li><li>Encrypt media/transcripts and restrict retention periods</li><li>Signed webhooks; RBAC and tenant-bound tool auth</li><li>Rate limits, PII redaction, emergency/human handoff</li></ul></div></div>
+        <h3 style="margin-top:30px">Service-level objectives — proposal</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>SLO</th><th>Candidate initial target</th><th>Measurement</th></tr></thead><tbody><tr><td>Call events persisted</td><td>100% or detectable/replayable gap</td><td>Compare provider CDR and internal ledger</td></tr><tr><td>Tool mutation idempotency</td><td>100% duplicate-safe</td><td>Replay same key 100+ times</td></tr><tr><td>Call setup success</td><td>Define from carrier baseline</td><td>Answered call to live media session</td></tr><tr><td>Speech response latency</td><td>Track p95; optimize against user test objective</td><td>Audio timestamps + tracing</td></tr><tr><td>Tenant isolation (C)</td><td>No cross-tenant reads/writes</td><td>Automated adversarial integration tests</td></tr><tr><td>Platform uptime (C)</td><td>99.9% stretch once operating maturity exists</td><td>SLO error budget over 30 days</td></tr></tbody></table></div>
+        <h3>Failure recovery</h3><div class="diagram-card"><div class="diagram-toolbar"><span class="diagram-label"><span class="diagram-dot"></span> RESILIENCE / FAIL SAFELY</span><div class="diagram-actions"><button class="tiny-btn copy-diagram">COPY MERMAID</button><button class="tiny-btn save-diagram">SAVE SVG</button></div></div><div class="diagram-body"><pre class="mermaid">
+flowchart TD
+  A["Active call"] --> B{"Provider / model healthy?"}
+  B -->|"Yes"| C["Continue audio + heartbeat"]
+  C --> A
+  B -->|"No"| D["Classify failure"]
+  D --> E{"Recoverable within deadline?"}
+  E -->|"Yes"| F["Retry bounded / reconnect media"]
+  F --> B
+  E -->|"No"| G["Tell caller + offer human transfer"]
+  G --> H{"Human available?"}
+  H -->|"Yes"| I["Transfer call"]
+  H -->|"No"| J["End safely; notify owner"]
+  I --> K["Persist final call outcome"]
+  J --> K
+  K --> L["Outbox → audit / billing / alert"]
+</pre></div><div class="diagram-note">Avoid retry storms and never repeat non-idempotent tool actions during reconnection.</div></div>
+        <div class="callout red"><div class="icon-num">×</div><div><strong>Security red lines</strong><p>The agent may propose actions, but only the server authorizes them. No unrestricted shell or SQL tool, no implicit permission to transfer money or place orders, no voice-cloning of a real person without rights/consent, and no undisclosed or unlawful automated bulk calling.</p></div></div>
+      </section>
+
+      <section class="section" id="roadmap">
+        <div class="section-eyebrow">13 / DELIVERY PLAN</div><h2>Build the system in defensible increments</h2>
+        <p class="section-intro">These are milestones, not guaranteed calendar estimates. Each stage has a measurable acceptance gate and is useful even if subsequent stages are never built.</p>
+        <div class="timeline"><div class="phase"><div class="week">M0 · FOUNDATION</div><strong>One browser conversation</strong><p>Hosted realtime model, microphone, event logging, reliable disconnect and human-readable logs.</p></div><div class="phase"><div class="week">M1 · PRODUCT A</div><strong>One real workflow</strong><p>Go tool gateway, room lookup, confirm/reserve flow, negative tests, human escalation.</p></div><div class="phase"><div class="week">M2 · TELEPHONY</div><strong>One real phone number</strong><p>Approved SIP/phone provider, inbound calls, signed webhooks, recordings policy and QA tests.</p></div><div class="phase"><div class="week">M3 · RESEARCH B</div><strong>Local inference benchmark</strong><p>Compare modular ASR/LLM/TTS with native duplex candidate under identical audio scenarios.</p></div><div class="phase"><div class="week">M4 · VALIDATE C</div><strong>Two paying tenants</strong><p>Only after demand: tenant isolation, metering, versioned agents, billing and horizontal worker pools.</p></div></div>
+        <h3 style="margin-top:30px">Acceptance gates</h3><div class="grid grid-3"><div class="card"><span class="pill pill-lime">A / EXIT CRITERIA</span><h4 style="margin-top:14px">Business outcome proved</h4><p>20+ varied scripted call scenarios pass; real caller can get correct answer or handoff; booking never duplicates. Provider bill is measurable.</p></div><div class="card"><span class="pill pill-cyan">B / EXIT CRITERIA</span><h4 style="margin-top:14px">Latency and quality proved</h4><p>GPU inference demonstrated with production-shaped call traffic, cancellation handling, accents, p95, dropout metrics and repeatable load tests.</p></div><div class="card"><span class="pill pill-purple">C / EXIT CRITERIA</span><h4 style="margin-top:14px">Multi-tenancy proved</h4><p>Two independent tenants with isolated data/API keys, accurate usage ledgers, bounded quotas, complete webhook delivery and reproducible rollback.</p></div></div>
+        <h3 style="margin-top:31px">Suggested first repository task list</h3><div class="grid grid-2"><div class="card"><ul class="check-list"><li>Initialize Go workspace, CI, Docker Compose, Postgres migrations</li><li>Define call + event contracts and state machine tests</li><li>Build ephemeral-session/token service for chosen API</li><li>Build browser WebRTC test page with status indicators</li><li>Implement signed webhooks and durable event outbox</li></ul></div><div class="card"><ul class="check-list"><li>Implement read-only business tool functions</li><li>Add confirmation-based booking tool and idempotency</li><li>Wire phone/SIP ingress and human-transfer fallback</li><li>Add per-stage tracing and audio scenario test harness</li><li>Document model/provider portability and data retention</li></ul></div></div>
+      </section>
+
+      <section class="section" id="repositories">
+        <div class="section-eyebrow">14 / OPEN SOURCE LANDSCAPE</div><h2>Repositories worth studying — by component</h2>
+        <p class="section-intro">All entries link to real public GitHub repositories. They are <em>components and reference implementations</em>, not plug-compatible clones of ChatGPT Voice. Evaluate versions, deployment requirements and licenses before adoption.</p>
+        <div class="repo-grid">
+          <a class="repo" href="https://github.com/livekit/livekit" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">livekit/livekit</strong><span class="arrow">↗</span></div><p>Distributed WebRTC SFU and realtime infrastructure, implemented in Go with Pion. Read this for transport, media architecture and scaling.</p><div class="repo-foot"><span class="pill pill-lime">GO</span><span class="pill">MEDIA ENGINE</span><span class="pill">C / B</span></div></a>
+          <a class="repo" href="https://github.com/livekit/sip" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">livekit/sip</strong><span class="arrow">↗</span></div><p>SIP-to-WebRTC bridge. Most relevant reference for turning a phone call into a LiveKit room participant.</p><div class="repo-foot"><span class="pill pill-lime">GO</span><span class="pill">SIP</span><span class="pill">A / B / C</span></div></a>
+          <a class="repo" href="https://github.com/pion/webrtc" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">pion/webrtc</strong><span class="arrow">↗</span></div><p>Pure Go WebRTC library. Study PeerConnection, ICE, DTLS, SRTP, data channels and custom realtime transports.</p><div class="repo-foot"><span class="pill pill-lime">GO</span><span class="pill">WEBRTC</span><span class="pill">B / C</span></div></a>
+          <a class="repo" href="https://github.com/livekit/agents" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">livekit/agents</strong><span class="arrow">↗</span></div><p>Agent sessions, turn handling, speech pipelines, tools and multimodal provider plugins. An execution framework, not the Go media server.</p><div class="repo-foot"><span class="pill pill-cyan">PYTHON / NODE</span><span class="pill">AGENT RUNTIME</span><span class="pill">A / B / C</span></div></a>
+          <a class="repo" href="https://github.com/pipecat-ai/pipecat" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">pipecat-ai/pipecat</strong><span class="arrow">↗</span></div><p>Open-source Python pipelines for realtime audio, speech services, transport adapters and multi-agent interactions.</p><div class="repo-foot"><span class="pill pill-cyan">PYTHON</span><span class="pill">PIPELINE</span><span class="pill">A / B</span></div></a>
+          <a class="repo" href="https://github.com/kyutai-labs/moshi" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">kyutai-labs/moshi</strong><span class="arrow">↗</span></div><p>Genuinely full-duplex speech-text research model with PyTorch, MLX and Rust inference; valuable for learning streaming audio architecture.</p><div class="repo-foot"><span class="pill pill-orange">PYTHON / RUST</span><span class="pill">DUPLEX MODEL</span><span class="pill">B</span></div></a>
+          <a class="repo" href="https://github.com/QwenLM/Qwen3-Omni" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">QwenLM/Qwen3-Omni</strong><span class="arrow">↗</span></div><p>Multimodal speech input and generation with model-serving examples. Check VRAM and target language coverage before selecting.</p><div class="repo-foot"><span class="pill pill-orange">MODEL / CUDA</span><span class="pill">MULTIMODAL</span><span class="pill">B</span></div></a>
+          <a class="repo" href="https://github.com/asterisk/asterisk" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">asterisk/asterisk</strong><span class="arrow">↗</span></div><p>Open-source PBX and telephony engine. Useful when owning SIP routing, dial plans, conferencing or call control becomes necessary.</p><div class="repo-foot"><span class="pill">C / TELEPHONY</span><span class="pill">ADVANCED</span></div></a>
+          <a class="repo" href="https://github.com/SYSTRAN/faster-whisper" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">SYSTRAN/faster-whisper</strong><span class="arrow">↗</span></div><p>Optimized Whisper ASR using CTranslate2. Benchmark recognition and streaming adapters on noisy phone recordings.</p><div class="repo-foot"><span class="pill">ASR</span><span class="pill">B</span></div></a>
+          <a class="repo" href="https://github.com/vllm-project/vllm" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">vllm-project/vllm</strong><span class="arrow">↗</span></div><p>High-throughput language-model inference and serving. Useful for local reasoning and certain supported multimodal backends.</p><div class="repo-foot"><span class="pill">INFERENCE</span><span class="pill">B / C</span></div></a>
+          <a class="repo" href="https://github.com/snakers4/silero-vad" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">snakers4/silero-vad</strong><span class="arrow">↗</span></div><p>Voice activity detection. Useful for modular speech pipelines; VAD alone does not solve semantic turn-taking.</p><div class="repo-foot"><span class="pill">VAD</span><span class="pill">B</span></div></a>
+          <a class="repo" href="https://github.com/kyutai-labs/pocket-tts" target="_blank" rel="noopener noreferrer"><div class="repo-head"><strong class="repo-name">kyutai-labs/pocket-tts</strong><span class="arrow">↗</span></div><p>Lightweight text-to-speech research option designed to run on CPUs. Test output quality and streaming integration for your use case.</p><div class="repo-foot"><span class="pill">TTS</span><span class="pill">B</span></div></a>
+        </div>
+        <div class="callout"><div class="icon-num">→</div><div><strong>Best GitHub reading order for a Go engineer</strong><p>Start with <b>livekit/livekit</b> → <b>livekit/sip</b> → <b>pion/webrtc</b>. Then inspect <b>livekit/agents</b> for conversation lifecycle and <b>kyutai-labs/moshi</b> for full-duplex model research. Build the Go gateway around these interfaces rather than recreating their internals.</p></div></div>
+      </section>
+
+      <section class="section" id="decisions">
+        <div class="section-eyebrow">15 / ARCHITECTURE REVIEW</div><h2>Challenge the assumptions</h2>
+        <p class="section-intro">The expensive mistakes are rarely a missing library. They are incorrect assumptions about reliability, latency, customer willingness to pay and the necessity of owning infrastructure.</p>
+        <div class="risk-grid"><div class="risk"><b>DEVIL'S ADVOCATE</b><p><span class="strong">Assumption:</span> ChatGPT-like speech requires a self-hosted full-duplex model. <span class="strong">Counterpoint:</span> Most business calls succeed with a well-tested modular system; measure interruption quality before overengineering.</p></div><div class="risk"><b>PRAGMATIST</b><p><span class="strong">Assumption:</span> Go should run every component. <span class="strong">Counterpoint:</span> Go is excellent for call control and media infrastructure; Python/Rust/CUDA may be better suited to inference runtimes. Use explicit process boundaries.</p></div><div class="risk"><b>FINANCIAL ANALYST</b><p><span class="strong">Assumption:</span> Owning a GPU is cheaper. <span class="strong">Counterpoint:</span> Underutilization, engineering overhead, on-call, model updates, and redundancy may dwarf per-minute hosted fees.</p></div><div class="risk"><b>SKEPTICAL CUSTOMER</b><p><span class="strong">Assumption:</span> Human-sounding calls are the value. <span class="strong">Counterpoint:</span> Customers pay for solved issues, correct reservations, short handling time and safe escalation.</p></div><div class="risk"><b>ETHICS / COMPLIANCE</b><p><span class="strong">Assumption:</span> Any available phone number can be dialed by an autonomous agent. <span class="strong">Counterpoint:</span> Consent, telemarketing restrictions, truthful AI disclosure, recording and data retention may determine whether the product is lawful.</p></div></div>
+        <h3 style="margin-top:29px">Architecture Decision Records (proposed)</h3><div class="table-wrap"><table class="data-table"><thead><tr><th>ID</th><th>Decision</th><th>Rationale</th><th>Revisit when</th></tr></thead><tbody><tr><td>ADR-001</td><td>Start with A</td><td>Fastest validation of user value and tool correctness</td><td>Hosted model cost dominates demonstrated revenue</td></tr><tr><td>ADR-002</td><td>Go for backend and control</td><td>Simple, typed, observable; efficient network services</td><td>Not applicable to model training/inference by default</td></tr><tr><td>ADR-003</td><td>Prefer LiveKit before custom SFU</td><td>Proven open-source RTP/WebRTC transport</td><td>Measured missing feature or performance bottleneck</td></tr><tr><td>ADR-004</td><td>PostgreSQL is source of truth</td><td>Auditable events, bookings and ledger transactions</td><td>Scale or compliance requirements force partitioning</td></tr><tr><td>ADR-005</td><td>Test B experimentally</td><td>Compare multilingual quality and unit economics using real audio</td><td>B beats hosted baseline on quality, privacy or TCO</td></tr><tr><td>ADR-006</td><td>C requires design partners</td><td>Multi-tenant platform cost without customers is speculative</td><td>Two+ credible customers need SDK, isolation or deployment</td></tr></tbody></table></div>
+      </section>
+
+      <section class="section" id="references">
+        <div class="section-eyebrow">16 / PRIMARY SOURCES</div><h2>Evidence &amp; documentation</h2><p class="section-intro">Documentation and repository sources checked for this specification, as of 6 November 2026. External model names, prices, licenses and endpoints are subject to change. This page is a planning artifact, not deployed calling software.</p>
+        <div class="source-list"><a class="source-link" href="https://help.openai.com/en/articles/20001274-chatgpt-voice" target="_blank" rel="noopener noreferrer"><span>OPENAI / CHATGPT</span>ChatGPT Voice models &amp; plan behavior ↗</a><a class="source-link" href="https://deploymentsafety.openai.com/gpt-live-1-1" target="_blank" rel="noopener noreferrer"><span>OPENAI / SAFETY</span>GPT-Live-1.1 model/system card ↗</a><a class="source-link" href="https://openai.com/index/continuous-voice-interaction-with-gpt-live/" target="_blank" rel="noopener noreferrer"><span>OPENAI / ENGINEERING</span>Continuous voice infrastructure and Go ↗</a><a class="source-link" href="https://developers.openai.com/api/docs/guides/live" target="_blank" rel="noopener noreferrer"><span>OPENAI / API</span>GPT-Live delegation and live sessions ↗</a><a class="source-link" href="https://developers.openai.com/api/docs/guides/voice-webrtc" target="_blank" rel="noopener noreferrer"><span>OPENAI / API</span>WebRTC sessions and ephemeral keys ↗</a><a class="source-link" href="https://developers.openai.com/api/docs/models/gpt-realtime-2.1" target="_blank" rel="noopener noreferrer"><span>OPENAI / API</span>GPT-Realtime-2.1 model information ↗</a><a class="source-link" href="https://developers.openai.com/api/docs/pricing" target="_blank" rel="noopener noreferrer"><span>OPENAI / PRICING</span>Live voice and realtime model price reference ↗</a><a class="source-link" href="https://github.com/livekit/agents" target="_blank" rel="noopener noreferrer"><span>LIVEKIT / CODE</span>Agents, AgentSession, SIP integrations ↗</a><a class="source-link" href="https://github.com/kyutai-labs/moshi" target="_blank" rel="noopener noreferrer"><span>KYUTAI / CODE</span>Moshi streaming duplex model ↗</a><a class="source-link" href="https://github.com/QwenLM/Qwen3-Omni" target="_blank" rel="noopener noreferrer"><span>QWEN / CODE</span>Qwen3-Omni models and VRAM notes ↗</a><a class="source-link" href="https://mermaid.js.org/intro/" target="_blank" rel="noopener noreferrer"><span>MERMAID / DOCS</span>Diagram rendering engine ↗</a><a class="source-link" href="https://docs.livekit.io/" target="_blank" rel="noopener noreferrer"><span>LIVEKIT / DOCS</span>Agents, SIP, and RTC architecture ↗</a></div>
+      </section>
+      <footer class="footer"><span>AI VOICE CALLING AGENT // ENGINEERING SPECIFICATION V1.0</span><span>DOCUMENT-ONLY PROTOTYPE · HTML / CSS / JS / MERMAID</span></footer>
+    </main>
+  </div>
+</div>
+<div id="toast" class="toast" role="status" aria-live="polite">Copied to clipboard</div>
+<div id="searchBackdrop" class="search-backdrop" role="dialog" aria-modal="true" aria-label="Find documentation section"><div class="search-panel"><input id="searchInput" placeholder="Search sections, models, technologies…" autocomplete="off" aria-label="Search sections" /><div class="search-results" id="searchResults"></div><div class="search-foot">↑↓ browse · ↵ open · ESC close</div></div></div>
+<script>
+(()=>{
+  'use strict';
+  const $$=s=>Array.from(document.querySelectorAll(s));
+  const toast=document.getElementById('toast');let toastTimer;
+  function notify(msg){toast.textContent=msg;toast.classList.add('show');clearTimeout(toastTimer);toastTimer=setTimeout(()=>toast.classList.remove('show'),2300)}
+  // Preserve source definitions even after Mermaid replaces pre content with SVG.
+  $$('.diagram-card').forEach((d,i)=>{const p=d.querySelector('.mermaid'); if(p){p.dataset.source=p.textContent.trim(); p.id='diagram-'+i;}});
+  $$('.chooser-btn').forEach(btn=>btn.addEventListener('click',()=>{$$('.chooser-btn').forEach(x=>{const selected=x===btn;x.classList.toggle('active',selected);x.setAttribute('aria-selected',String(selected));});$$('.focus-panel').forEach(x=>x.classList.toggle('active',x.dataset.panel===btn.dataset.architecture));}));
+  async function copyText(text){try{await navigator.clipboard.writeText(text);notify('Copied to clipboard')}catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.position='fixed';document.body.appendChild(ta);ta.select();document.execCommand('copy');ta.remove();notify('Copied to clipboard')}}
+  $$('.copy-diagram').forEach(b=>b.addEventListener('click',()=>{const p=b.closest('.diagram-card').querySelector('.mermaid');copyText(p.dataset.source||p.textContent)}));
+  $$('.copy-code').forEach(b=>b.addEventListener('click',()=>copyText(b.closest('.code-box').querySelector('code').textContent)));
+  $$('.save-diagram').forEach(b=>b.addEventListener('click',()=>{const box=b.closest('.diagram-card');const svg=box.querySelector('.mermaid svg');if(!svg){notify('Diagram SVG requires an internet connection');return} const content=svg.outerHTML;const blob=new Blob([content],{type:'image/svg+xml;charset=utf-8'});const url=URL.createObjectURL(blob);const a=document.createElement('a');a.href=url;a.download=(box.querySelector('.diagram-label')?.textContent||'architecture').trim().replace(/[^a-z0-9]+/gi,'-').replace(/^-|-$/g,'').toLowerCase()+'.svg';document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);notify('Diagram SVG downloaded')}));
+  const ids=['callsDay','minsCall','voicePrice','carrierPrice'];
+  function calc(){const a=ids.map(id=>Math.max(0,Number(document.getElementById(id).value)||0));const monthlyMinutes=a[0]*a[1]*30;const total=monthlyMinutes*(a[2]+a[3]);document.getElementById('calcTotal').textContent=total.toLocaleString('en-US',{style:'currency',currency:'USD',maximumFractionDigits:2});document.getElementById('calcDetails').textContent=monthlyMinutes.toLocaleString('en-US')+' estimated minutes/month · voice $'+(monthlyMinutes*a[2]).toFixed(2)+' + illustrative carrier $'+(monthlyMinutes*a[3]).toFixed(2)+'. Excludes backend models/tools, tax, recordings, numbers and infrastructure. Carrier rate is not a quote.'}
+  ids.forEach(id=>document.getElementById(id)?.addEventListener('input',calc));calc();
+  const backdrop=document.getElementById('searchBackdrop'), input=document.getElementById('searchInput'),results=document.getElementById('searchResults');
+  const nav=$$('.side-link').map(a=>({title:a.textContent.replace(/^\s*[\dA-C]+\s*/, '').trim(),hash:a.getAttribute('href'),search:(document.querySelector(a.getAttribute('href'))?.innerText||'').toLowerCase()}));
+  function renderSearch(){const q=input.value.trim().toLowerCase();const matches=nav.filter(x=>!q||x.title.toLowerCase().includes(q)||x.search.includes(q)).slice(0,12);results.innerHTML='';matches.forEach(n=>{const a=document.createElement('a');a.className='search-result';a.href=n.hash;a.textContent=n.title;const span=document.createElement('span');span.textContent='↗';a.appendChild(span);a.addEventListener('click',closeSearch);results.appendChild(a)});if(!matches.length){const empty=document.createElement('p');empty.style.padding='16px';empty.style.color='#99acbe';empty.textContent='No matching sections';results.appendChild(empty)}}
+  function openSearch(){backdrop.classList.add('open');input.value='';renderSearch();setTimeout(()=>input.focus(),50)}function closeSearch(){backdrop.classList.remove('open')}
+  document.getElementById('searchButton').addEventListener('click',openSearch);document.getElementById('mobileSearch').addEventListener('click',openSearch);input.addEventListener('input',renderSearch);backdrop.addEventListener('click',e=>{if(e.target===backdrop)closeSearch()});document.addEventListener('keydown',e=>{if((e.metaKey||e.ctrlKey)&&e.key.toLowerCase()==='k'){e.preventDefault();openSearch()}if(e.key==='Escape')closeSearch();if(e.key==='Enter'&&backdrop.classList.contains('open')){const a=results.querySelector('a');if(a)a.click()}});
+  const links=$$('.side-link');const obs=new IntersectionObserver(entries=>{const items=entries.filter(e=>e.isIntersecting).sort((a,b)=>a.boundingClientRect.top-b.boundingClientRect.top);if(items.length){const id='#'+items[0].target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')===id))}},{rootMargin:'-85px 0px -68% 0px',threshold:0});$$('main section[id]').forEach(s=>obs.observe(s));
+  // Defer Mermaid rendering to the module loader below; failure leaves the original readable source intact.
+})();
+</script>
+<script type="module">
+  const cdns=['https://cdn.jsdelivr.net/npm/mermaid@11.12.2/dist/mermaid.esm.min.mjs','https://unpkg.com/mermaid@11.12.2/dist/mermaid.esm.min.mjs'];
+  let mermaid=null;
+  for(const url of cdns){try{const module=await import(url);mermaid=module.default;break}catch(err){console.warn('Mermaid CDN unavailable:',url,err)}}
+  if(mermaid){
+    try{
+      mermaid.initialize({startOnLoad:false,securityLevel:'strict',theme:'base',flowchart:{curve:'basis',htmlLabels:true,nodeSpacing:37,rankSpacing:45,diagramPadding:12},sequence:{actorMargin:60,messageMargin:35},themeVariables:{darkMode:true,background:'#101922',primaryColor:'#243b32',primaryTextColor:'#f3fff4',primaryBorderColor:'#a5d67f',lineColor:'#7b91a8',secondaryColor:'#1b3544',tertiaryColor:'#172533',tertiaryTextColor:'#e7f0f9',clusterBkg:'#121f2b',clusterBorder:'#4a6572',fontFamily:'DM Sans, sans-serif',fontSize:'13px',actorBkg:'#1b3544',actorBorder:'#6aacae',actorTextColor:'#ecf5f8',signalColor:'#b7c6d4',signalTextColor:'#e6eff8',labelBoxBkgColor:'#253648',labelTextColor:'#d8e5ee',noteBkgColor:'#283626',noteTextColor:'#eaf5e7'}});
+      const nodes=Array.from(document.querySelectorAll('.mermaid'));
+      // Render separately so one malformed chart does not prevent the others from displaying.
+      let n=0;
+      for(const node of nodes){const source=node.dataset.source||node.textContent;try{const result=await mermaid.render('voice-figure-'+(++n),source);node.innerHTML=result.svg;node.dataset.rendered='true';if(typeof result.bindFunctions==='function')result.bindFunctions(node)}catch(e){console.error('Diagram render error',e);node.textContent=source;node.classList.add('diagram-fallback')}}
+    }catch(err){console.error('Mermaid initialization failed',err)}
+  }else{document.querySelectorAll('.mermaid').forEach(n=>n.classList.add('diagram-fallback'));console.warn('Diagrams remain as Mermaid source; internet required for rendered SVGs.');}
+</script>
+</body>
+</html>
