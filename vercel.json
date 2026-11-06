@@ -1,7 +1,8 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
-  "cleanUrls": true,
-  "rewrites": [
-    { "source": "/", "destination": "/ai-voice-calling-agent-spec" }
-  ]
+  "framework": null,
+  "buildCommand": null,
+  "installCommand": null,
+  "outputDirectory": "voice-agent-premium-source/dist",
+  "cleanUrls": true
 }
